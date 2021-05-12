@@ -2,6 +2,6 @@ torch
 torchvision
 matplotlib
 easydict
-opencv - python
+opencv-python
 tqdm
 numpy
