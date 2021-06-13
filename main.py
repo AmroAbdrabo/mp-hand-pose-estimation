@@ -26,7 +26,7 @@ if __name__ == "__main__":
     #torch.cuda.empty_cache()
     set_seed(main_seed)  # Seed main thread
     num_threads = 8
-    dev = torch.device("cuda")
+    dev = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     data_dir = os.environ["MP_DATA"]
     #assert(os.path.isdir(data_dir))
     save_dir = os.environ["MP_EXPERIMENTS"]

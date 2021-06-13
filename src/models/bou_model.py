@@ -20,14 +20,15 @@ kintree_table = dd['kintree_table']
 id_to_col = {kintree_table[1,i] : i for i in range(kintree_table.shape[1])} 
 parent = {i : id_to_col[kintree_table[0,i]] for i in range(1, kintree_table.shape[1])}  
 
-mesh_mu = Variable(torch.from_numpy(np.expand_dims(dd['v_template'], 0).astype(np.float32)).cuda()) # zero mean
-mesh_pca = Variable(torch.from_numpy(np.expand_dims(dd['shapedirs'], 0).astype(np.float32)).cuda())
-posedirs = Variable(torch.from_numpy(np.expand_dims(dd['posedirs'], 0).astype(np.float32)).cuda())
-J_regressor = Variable(torch.from_numpy(np.expand_dims(dd['J_regressor'].todense(), 0).astype(np.float32)).cuda())
-weights = Variable(torch.from_numpy(np.expand_dims(dd['weights'], 0).astype(np.float32)).cuda())
-hands_components = Variable(torch.from_numpy(np.expand_dims(np.vstack(dd['hands_components'][:pose_num]), 0).astype(np.float32)).cuda())
-hands_mean       = Variable(torch.from_numpy(np.expand_dims(dd['hands_mean'], 0).astype(np.float32)).cuda())
-root_rot = Variable(torch.FloatTensor([np.pi,0.,0.]).unsqueeze(0).cuda())
+
+mesh_mu = Variable(torch.from_numpy(np.expand_dims(dd['v_template'], 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['v_template'], 0).astype(np.float32)))# zero mean
+mesh_pca = Variable(torch.from_numpy(np.expand_dims(dd['shapedirs'], 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['shapedirs'], 0).astype(np.float32)))
+posedirs = Variable(torch.from_numpy(np.expand_dims(dd['posedirs'], 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['posedirs'], 0).astype(np.float32)))
+J_regressor = Variable(torch.from_numpy(np.expand_dims(dd['J_regressor'].todense(), 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['J_regressor'].todense(), 0).astype(np.float32)))
+weights = Variable(torch.from_numpy(np.expand_dims(dd['weights'], 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['weights'], 0).astype(np.float32)))
+hands_components = Variable(torch.from_numpy(np.expand_dims(np.vstack(dd['hands_components'][:pose_num]), 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(np.vstack(dd['hands_components'][:pose_num]), 0).astype(np.float32)))
+hands_mean       = Variable(torch.from_numpy(np.expand_dims(dd['hands_mean'], 0).astype(np.float32)).cuda()) if torch.cuda.is_available() else Variable(torch.from_numpy(np.expand_dims(dd['hands_mean'], 0).astype(np.float32)))
+root_rot = Variable(torch.FloatTensor([np.pi,0.,0.]).unsqueeze(0).cuda()) if torch.cuda.is_available() else Variable(torch.FloatTensor([np.pi,0.,0.]).unsqueeze(0))
 
 def rodrigues(r):       
     theta = torch.sqrt(torch.sum(torch.pow(r, 2),1))  
@@ -44,7 +45,7 @@ def rodrigues(r):
     #R = torch.eye(3).unsqueeze(0) + torch.sin(theta).view(-1, 1, 1)*Sn\
     #        +(1.-torch.cos(theta).view(-1, 1, 1)) * torch.matmul(Sn,Sn)
     
-    I3 = Variable(torch.eye(3).unsqueeze(0).cuda())
+    I3 = Variable(torch.eye(3).unsqueeze(0).cuda()) if torch.cuda.is_available() else Variable(torch.eye(3).unsqueeze(0))
 
     R = I3 + torch.sin(theta).view(-1, 1, 1)*Sn\
         +(1.-torch.cos(theta).view(-1, 1, 1)) * torch.matmul(Sn,Sn)
@@ -65,7 +66,7 @@ def get_poseweights(poses, bsize):
     # pose: batch x 24 x 3                                                    
     pose_matrix, _ = rodrigues(poses[:,1:,:].contiguous().view(-1,3))
     #pose_matrix, _ = rodrigues(poses.view(-1,3))    
-    pose_matrix = pose_matrix - Variable(torch.from_numpy(np.repeat(np.expand_dims(np.eye(3, dtype=np.float32), 0),bsize*(keypoints_num-1),axis=0)).cuda())
+    pose_matrix = pose_matrix - Variable(torch.from_numpy(np.repeat(np.expand_dims(np.eye(3, dtype=np.float32), 0),bsize*(keypoints_num-1),axis=0)).cuda()) if torch.cuda.is_available() else pose_matrix - Variable(torch.from_numpy(np.repeat(np.expand_dims(np.eye(3, dtype=np.float32), 0),bsize*(keypoints_num-1),axis=0)))
     pose_matrix = pose_matrix.view(bsize, -1)
     return pose_matrix
 
@@ -101,10 +102,11 @@ def rot_pose_beta_to_mesh(rots, poses, betas):
 
     #with_zeros = lambda x: torch.cat((x,torch.FloatTensor([[[0.0, 0.0, 0.0, 1.0]]]).repeat(batch_size,1,1)),1)
 
-    with_zeros = lambda x:\
-        torch.cat((x,   Variable(torch.FloatTensor([[[0.0, 0.0, 0.0, 1.0]]]).repeat(batch_size,1,1).cuda())  ),1)
+    with_zeros = (lambda x:\
+        torch.cat((x,   Variable(torch.FloatTensor([[[0.0, 0.0, 0.0, 1.0]]]).repeat(batch_size,1,1).cuda())  ),1)) if torch.cuda.is_available() else (lambda x:\
+        torch.cat((x,   Variable(torch.FloatTensor([[[0.0, 0.0, 0.0, 1.0]]]).repeat(batch_size,1,1))  ),1))
 
-    pack = lambda x: torch.cat((Variable(torch.zeros(batch_size,4,3).cuda()),x),2) 
+    pack = (lambda x: torch.cat((Variable(torch.zeros(batch_size,4,3).cuda()),x),2) ) if torch.cuda.is_available() else (lambda x: torch.cat((Variable(torch.zeros(batch_size,4,3)),x),2))
 
     results = {}
     results[0] = with_zeros(torch.cat((angle_matrix[0], J_posed_split[0].view(batch_size,3,1)),2))
@@ -119,14 +121,14 @@ def rot_pose_beta_to_mesh(rots, poses, betas):
     results2 = []
          
     for i in range(len(results)):
-        vec = (torch.cat((J_posed_split[i], Variable(torch.zeros(batch_size,1).cuda()) ),1)).view(batch_size,4,1)
+        vec = (torch.cat((J_posed_split[i], Variable(torch.zeros(batch_size,1).cuda()) ),1)).view(batch_size,4,1) if torch.cuda.is_available() else (torch.cat((J_posed_split[i], Variable(torch.zeros(batch_size,1)) ),1)).view(batch_size,4,1)
         results2.append((results[i]-pack(torch.matmul(results[i], vec))).unsqueeze(0))    
 
     results = torch.cat(results2, 0)
     
     T = torch.matmul(results.permute(1,2,3,0), weights.repeat(batch_size,1,1).permute(0,2,1).unsqueeze(1).repeat(1,4,1,1))
     Ts = torch.split(T, 1, 2)
-    rest_shape_h = torch.cat((v_posed, Variable(torch.ones(batch_size,mesh_num,1).cuda()) ), 2)  
+    rest_shape_h = torch.cat((v_posed, Variable(torch.ones(batch_size,mesh_num,1).cuda()) ), 2) if torch.cuda.is_available() else torch.cat((v_posed, Variable(torch.ones(batch_size,mesh_num,1)) ), 2)
     rest_shape_hs = torch.split(rest_shape_h, 1, 2)
 
     v = Ts[0].contiguous().view(batch_size, 4, mesh_num) * rest_shape_hs[0].contiguous().view(-1, 1, mesh_num)\
@@ -309,7 +311,7 @@ class _ResNet_Mano(nn.Module):
 
         # we adjust the final fully connected layer to output a vector v
         self.fc = nn.Linear(512 * block.expansion, num_classes)                        
-        self.mean = Variable(torch.FloatTensor([545.,128.,128.,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0]).cuda())
+        self.mean = Variable(torch.FloatTensor([545.,128.,128.,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0]).cuda()) if torch.cuda.is_available() else Variable(torch.FloatTensor([545.,128.,128.,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0,.0]))
         
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
