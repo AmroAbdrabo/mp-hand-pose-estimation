@@ -8,3 +8,6 @@ src/utils/__pycache__
 manopth/
 augmented_images/
 runs
+images
+experiments
+data
