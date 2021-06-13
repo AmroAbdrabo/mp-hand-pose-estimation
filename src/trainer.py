@@ -1,5 +1,5 @@
 import gzip
-
+import numpy as np
 import torch
 import os
 import json
@@ -173,12 +173,31 @@ class Trainer:
             )
 
         
+        preds_new = []
         preds = pyt2np(torch.cat(preds_storage, dim=0)).tolist()
+        try:
+            for el in preds:
+                deorder = deconvert_order(np.array(el))
+                preds_new.append(deorder)
+        except:
+            print("problem with changing the order")
 
         test_path = os.path.join(self.exp_dir, "test_preds.json")
         print(f"Dumping test predictions in {test_path}")
         with open(test_path, "w") as f:
             json.dump(preds, f)
+
+        # use alternative gzip function to work on windows
+        with open(test_path, "rb") as f:
+            data = f.read()
+            bindata = bytearray(data)
+            with gzip.open(test_path + '.gz', 'wb') as f_out:
+                f_out.write(bindata)
+
+        test_path = os.path.join(self.exp_dir, "test_preds_correct_order.json")
+        print(f"Dumping test predictions in {test_path}")
+        with open(test_path, "w") as f:
+            json.dump(preds_new, f)
 
         # use alternative gzip function to work on windows
         with open(test_path, "rb") as f:
