@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import torch
 import cv2 as cv  # cv is faster than PIL
 
@@ -7,6 +8,17 @@ from src.utils.joints import JointInfo
 import os
 
 # NOTE Try adding data augmentation here
+
+def showPlot(original, augmented, title):
+    # Making plots for report (use in debug mode):
+    fig = plt.figure(figsize=(20, 10))
+    fig.add_subplot(1, 2, 1);
+    plt.title("Before " + title, fontsize=20);
+    plt.imshow(original)
+    fig.add_subplot(1, 2, 2);
+    plt.title("After " + title, fontsize=20);
+    plt.imshow(augmented)
+    plt.show()
 
 
 class NumpyToPytorch:
@@ -83,6 +95,9 @@ class Rotate:
                                [np.sin(radians), np.cos(radians), 0],
                                [0, 0, 1]])
 
+        # Making plot for report:
+        #showPlot(sample["image"],cv.warpAffine(sample["image"], rot_mat, (col, row)), "Rotation Augmentation")
+
         sample["image"] = cv.warpAffine(sample["image"], rot_mat, (col, row))
 
         sample["kp3d"] = np.matmul(kp3d, rot_mat_3D)
@@ -126,8 +141,8 @@ class AddClutter:
 
     def __call__(self, sample):
 
-        image = sample["image"]
-        image_size = image.shape[0]
+        image_occl = sample["image"]
+        image_size = image_occl.shape[0]
 
         shape_minsize = 10
         border = image_size / 6
@@ -143,22 +158,23 @@ class AddClutter:
         if (shape_int == 0):
             # Circle
             radius = np.random.randint(shape_minsize, image_size / 6)
-            cv.circle(image, (posX, posY), radius, (r, g, b), thickness=-1)
+            cv.circle(image_occl, (posX, posY), radius, (r, g, b), thickness=-1)
         elif (shape_int == 1):
             # Ellipse
             radius1 = np.random.randint(shape_minsize, image_size / 6)
             radius2 = np.random.randint(shape_minsize, image_size / 6)
             angle = np.random.randint(360)
-            cv.ellipse(image, (posX, posY), (radius1, radius2), angle, 0, 360, (r, g, b), thickness=-1)
+            cv.ellipse(image_occl, (posX, posY), (radius1, radius2), angle, 0, 360, (r, g, b), thickness=-1)
         elif (shape_int == 2):
             # Rectangle
             len1 = np.random.randint(shape_minsize, image_size / 8)
             len2 = np.random.randint(shape_minsize, image_size / 8)
-            cv.rectangle(image, (posX - len1, posY - len2), (posX + len1, posY + len2), (r, g, b), thickness=-1)
+            cv.rectangle(image_occl, (posX - len1, posY - len2), (posX + len1, posY + len2), (r, g, b), thickness=-1)
 
-        sample["image"] = image
+        # Making plot for report:
+        #showPlot(sample["image"], image_occl, "Occlusion Augmentation")
 
-        self.counter = self.counter + 1
+        sample["image"] = image_occl
 
         return sample
 
@@ -172,9 +188,6 @@ class ChangeBackground:
         self.background_folder = os.environ["MP_BACKGROUNDS"]
         self.green_thresh_low = np.array([0, 120, 0])
         self.green_thresh_high = np.array([255, 255, 255])
-        self.counter = 0
-
-        pass
 
     def __call__(self, sample):
 
@@ -186,7 +199,7 @@ class ChangeBackground:
 
             image_size = image.shape[0]
 
-            hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+            hsv = cv.cvtColor(image, cv.COLOR_RGB2HSV)
 
             green = hsv[:, :, 1]
 
@@ -199,7 +212,12 @@ class ChangeBackground:
                 while (inner_folder == ".DS_Store"):
                     inner_folder = np.random.choice(os.listdir(self.background_folder))
                 bg_file = np.random.choice(os.listdir(self.background_folder + inner_folder))
+
                 bg = cv.imread(self.background_folder + inner_folder + "/" + bg_file)  # [0:image_size, 0:image_size]
+                while bg is None or bg.shape[0]<image_size or bg.shape[1]<image_size:
+                    bg_file = np.random.choice(os.listdir(self.background_folder + inner_folder))
+                    bg = cv.imread(self.background_folder + inner_folder + "/" + bg_file)  # [0:image_size, 0:image_size]
+
                 bg = cv.resize(bg, (image_size, image_size))
                 bg = cv.cvtColor(bg, cv.COLOR_BGR2RGB)
 
@@ -208,7 +226,11 @@ class ChangeBackground:
                 masked_hand = cv.bitwise_and(image, image, mask=mask_inverted)
                 masked_bg = cv.bitwise_and(bg, bg, mask=mask)
                 hand_bg = cv.bitwise_or(masked_hand, masked_bg)
-                hand_bg_rgb = cv.cvtColor(hand_bg, cv.COLOR_BGR2RGB)
+                #hand_bg_rgb = cv.cvtColor(hand_bg, cv.COLOR_BGR2RGB)
+
+                # Making plots for report (use in debug mode):
+                #showPlot(sample["image"], hand_bg, "Background Augmentation")
 
                 sample["image"] = hand_bg
+
         return sample
