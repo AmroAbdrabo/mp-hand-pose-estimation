@@ -5,6 +5,6 @@ venv
 src/losses/__pycache__
 src/models/__pycache__
 src/utils/__pycache__
-manopth
+manopth/
 augmented_images/
 runs

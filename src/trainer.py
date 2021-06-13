@@ -30,7 +30,7 @@ class Trainer:
         self.data_loader_test = data_loader_test
         self.model = model
         #self.opt = optimizer
-        self.params = get_config("C:\\Users\\amroa\\MP2021\\Bou\\Kldivergent\\src\\config.yml")
+        self.params = get_config("config.yml")
         # setup the optimizer
         self.lr = self.params.lr
         self.beta1 = self.params.beta1

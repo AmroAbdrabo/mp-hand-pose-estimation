@@ -27,9 +27,9 @@ if __name__ == "__main__":
     set_seed(main_seed)  # Seed main thread
     num_threads = 4
     dev = torch.device("cuda")
-    data_dir = "C:\\Users\\amroa\\MP2021\\Data_MP_project1\\Data_MP_project1"
+    data_dir = os.environ["MP_DATA"]
     #assert(os.path.isdir(data_dir))
-    save_dir = "C:\\Users\\amroa\\MP2021\\experiments"
+    save_dir = os.environ["MP_EXPERIMENTS"]
     ######## Set-up experimental directories
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         "--n_epochs", help="Number of training epochs", type=int, default=50
     )
     parser.add_argument(
-        "--batch_size", help="Batch size for one pass", type=int, default=64
+        "--batch_size", help="Batch size for one pass", type=int, default=100
     )
     args = parser.parse_args()
     ######### Set-up model
@@ -131,7 +131,20 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    trainer.train_model(args.n_epochs)
+    load_model = False
+    only_test = False
+
+    path = 'S:\\Projects\\MachinePerception\\Experiments\\chernytska_model_V1' + '\\'
+    name = 'model_last.pt'
+    if load_model:
+        trainer.model.load_state_dict(torch.load(path + name))
+        if only_test:
+            trainer.model.eval()
+        else:
+            trainer.model.train()
+    if not only_test:
+        trainer.train_model(args.n_epochs)
     # Test the model and dump the results to disk
     # NOTE You may want to write a separate script that can evaluate a trained model
     trainer.test_model()
+
