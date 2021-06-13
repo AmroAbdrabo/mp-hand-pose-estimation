@@ -3,9 +3,14 @@ import os
 import json
 from tqdm import tqdm
 import subprocess
-
+import easydict
+import yaml
 from src.utils.utils import pyt2np
+from src.models.bou_model import Bottleneck, DeconvBottleneck, BasicBlock
 
+def get_config(config):
+    with open(config, 'r') as stream:
+        return easydict.EasyDict(yaml.load(stream))
 
 class Trainer:
     def __init__(
@@ -24,12 +29,22 @@ class Trainer:
         self.data_loader_val = data_loader_val
         self.data_loader_test = data_loader_test
         self.model = model
-        self.opt = optimizer
+        #self.opt = optimizer
+        self.params = get_config("C:\\Users\\amroa\\MP2021\\Bou\\Kldivergent\\src\\config.yml")
+        # setup the optimizer
+        self.lr = self.params.lr
+        self.beta1 = self.params.beta1
+        self.beta2 = self.params.beta2
+        #p_view = self.model.state_dict()
+        self.opt = torch.optim.Adam([p for p in self.model.parameters() if p.requires_grad],
+                                    lr = self.lr, betas=(self.beta1, self.beta2), weight_decay=self.params.weight_decay)
         self.dev = dev
         self.loss_fn = loss_fn
         self.print_freq = 100  # Update print frequency
         self.save_freq = 10
         self.exp_dir = exp_dir
+        #self.bottleneck = Bottleneck(1598, 10).to("cuda")  # should change with batch size
+        #self.deconvbn = DeconvBottleneck(40, 21).to("cuda")
 
     def one_pass(self, data_loader, phase, preds_storage=None):
         """
@@ -46,7 +61,16 @@ class Trainer:
             # Send batch to device
             self.send_to_device(batch)
             # Forward pass
-            output = model(batch)
+
+            #x, x3d = model(batch)
+            x2d, x3d, param = self.model(batch['image'])
+            #joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42:]
+            joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21:, :]
+            
+            #print(joint_3d.shape) #torch.Size([10, 21, 3])
+            output = {}
+            output['kp3d'] = joint_3d
+            output['param'] = param 
             # Compute loss
             losses = loss_fn(output, batch, phase)
 

@@ -3,8 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as f
 
 from src.utils.utils import procrustes
+from src.utils.utils import kp3d_to_kp2d
 
 
+def compute_param_reg_loss(vec):
+    assert vec.shape[1] == 22
+    beta_weight = 10**4
+    beta = vec[:, -10:]
+    theta = vec[:, -16:-10]
+    ret = torch.mean(theta**2) + beta_weight * torch.mean(beta**2)
+    return ret
 def get_loss(loss_cfg, dev):
 
     all_losses = {}
@@ -22,7 +30,8 @@ def get_loss(loss_cfg, dev):
                 )
             else:
                 raise Exception(f"Unknown loss type {loss_params.type}")
-
+        elif loss_name == "reg_kp2d_kp3d":
+            loss = lambda pred, target: f.l1_loss(pred["kp3d"].to(dev), target["kp3d"].to(dev))+compute_param_reg_loss(pred['param'])
         else:
             raise Exception(f"Unknown loss {loss_name}")
 
