@@ -47,7 +47,7 @@ class FreiHANDDataset(DatasetReader):
 
     def convert_order(self, kp3d_from):
         """
-        Convert order from FreiHAND to AIT. Accepts batch and sample input
+        Convert order from FreiHAND to MANO (and then to AIT at the end). Accepts batch and sample input
         """
         # order of Freiburg dataset
         # 0: wrist
@@ -59,31 +59,31 @@ class FreiHANDDataset(DatasetReader):
 
         output = np.zeros(shape=kp3d_from.shape, dtype=kp3d_from.dtype)
 
-        output[..., Joints.root, :] = kp3d_from[..., 0, :]
-        output[..., Joints.thumb_mcp, :] = kp3d_from[..., 1, :]
-        output[..., Joints.thumb_pip, :] = kp3d_from[..., 2, :]
-        output[..., Joints.thumb_dip, :] = kp3d_from[..., 3, :]
-        output[..., Joints.thumb_tip, :] = kp3d_from[..., 4, :]
+        output[..., Joints.root_mano, :] = kp3d_from[..., 0, :]
+        output[..., Joints.thumb_mcp_mano, :] = kp3d_from[..., 1, :]
+        output[..., Joints.thumb_pip_mano, :] = kp3d_from[..., 2, :]
+        output[..., Joints.thumb_dip_mano, :] = kp3d_from[..., 3, :]
+        output[..., Joints.thumb_tip_mano, :] = kp3d_from[..., 4, :]
 
-        output[..., Joints.index_mcp, :] = kp3d_from[..., 5, :]
-        output[..., Joints.index_pip, :] = kp3d_from[..., 6, :]
-        output[..., Joints.index_dip, :] = kp3d_from[..., 7, :]
-        output[..., Joints.index_tip, :] = kp3d_from[..., 8, :]
+        output[..., Joints.index_mcp_mano, :] = kp3d_from[..., 5, :]
+        output[..., Joints.index_pip_mano, :] = kp3d_from[..., 6, :]
+        output[..., Joints.index_dip_mano, :] = kp3d_from[..., 7, :]
+        output[..., Joints.index_tip_mano, :] = kp3d_from[..., 8, :]
 
-        output[..., Joints.middle_mcp, :] = kp3d_from[..., 9, :]
-        output[..., Joints.middle_pip, :] = kp3d_from[..., 10, :]
-        output[..., Joints.middle_dip, :] = kp3d_from[..., 11, :]
-        output[..., Joints.middle_tip, :] = kp3d_from[..., 12, :]
+        output[..., Joints.middle_mcp_mano, :] = kp3d_from[..., 9, :]
+        output[..., Joints.middle_pip_mano, :] = kp3d_from[..., 10, :]
+        output[..., Joints.middle_dip_mano, :] = kp3d_from[..., 11, :]
+        output[..., Joints.middle_tip_mano, :] = kp3d_from[..., 12, :]
 
-        output[..., Joints.ring_mcp, :] = kp3d_from[..., 13, :]
-        output[..., Joints.ring_pip, :] = kp3d_from[..., 14, :]
-        output[..., Joints.ring_dip, :] = kp3d_from[..., 15, :]
-        output[..., Joints.ring_tip, :] = kp3d_from[..., 16, :]
+        output[..., Joints.ring_mcp_mano, :] = kp3d_from[..., 13, :]
+        output[..., Joints.ring_pip_mano, :] = kp3d_from[..., 14, :]
+        output[..., Joints.ring_dip_mano, :] = kp3d_from[..., 15, :]
+        output[..., Joints.ring_tip_mano, :] = kp3d_from[..., 16, :]
 
-        output[..., Joints.pinky_mcp, :] = kp3d_from[..., 17, :]
-        output[..., Joints.pinky_pip, :] = kp3d_from[..., 18, :]
-        output[..., Joints.pinky_dip, :] = kp3d_from[..., 19, :]
-        output[..., Joints.pinky_tip, :] = kp3d_from[..., 20, :]
+        output[..., Joints.pinky_mcp_mano, :] = kp3d_from[..., 17, :]
+        output[..., Joints.pinky_pip_mano, :] = kp3d_from[..., 18, :]
+        output[..., Joints.pinky_dip_mano, :] = kp3d_from[..., 19, :]
+        output[..., Joints.pinky_tip_mano, :] = kp3d_from[..., 20, :]
 
         return output
 

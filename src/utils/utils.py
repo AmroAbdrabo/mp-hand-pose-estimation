@@ -2,7 +2,7 @@ import json
 import random
 import numpy as np
 import torch
-
+from src.utils.joints import JointInfo as Joints
 
 def json_load(p):
     with open(p, "r") as fi:
@@ -20,6 +20,47 @@ def kp3d_to_kp2d(kp3d, K):
 
     return kp2d[..., :2]
 
+def deconvert_order(kp3d_from):
+        """
+        De-Convert order from MANO to AIT. Accepts batch and sample input
+        """
+        # order of Freiburg dataset
+        # 0: wrist
+        # 1 - 4: thumb[palm to tip], ...
+        # 5 - 8: index,
+        # 9 - 12: middle
+        # 13 - 16: ring
+        # 17 - 20: pinky,
+
+        output = np.zeros(shape=kp3d_from.shape, dtype=kp3d_from.dtype)
+
+        output[..., Joints.root, :] = kp3d_from[..., Joints.root_mano, :]
+        output[..., Joints.thumb_mcp, :] = kp3d_from[..., Joints.thumb_mcp_mano, :]
+        output[..., Joints.thumb_pip, :] = kp3d_from[..., Joints.thumb_pip_mano, :]
+        output[..., Joints.thumb_dip, :] = kp3d_from[..., Joints.thumb_dip_mano, :]
+        output[..., Joints.thumb_tip, :] = kp3d_from[..., Joints.thumb_tip_mano, :]
+
+        output[..., Joints.index_mcp, :] = kp3d_from[..., Joints.index_mcp_mano, :]
+        output[..., Joints.index_pip, :] = kp3d_from[..., Joints.index_pip_mano, :]
+        output[..., Joints.index_dip, :] = kp3d_from[..., Joints.index_dip_mano, :]
+        output[..., Joints.index_tip, :] = kp3d_from[..., Joints.index_tip_mano, :]
+
+        output[..., Joints.middle_mcp, :] = kp3d_from[..., Joints.middle_mcp_mano, :]
+        output[..., Joints.middle_pip, :] = kp3d_from[..., Joints.middle_pip_mano, :]
+        output[..., Joints.middle_dip, :] = kp3d_from[..., Joints.middle_dip_mano, :]
+        output[..., Joints.middle_tip, :] = kp3d_from[..., Joints.middle_tip_mano, :]
+
+        output[..., Joints.ring_mcp, :] = kp3d_from[..., Joints.ring_mcp_mano, :]
+        output[..., Joints.ring_pip, :] = kp3d_from[..., Joints.ring_pip_mano, :]
+        output[..., Joints.ring_dip, :] = kp3d_from[..., Joints.ring_dip_mano, :]
+        output[..., Joints.ring_tip, :] = kp3d_from[..., Joints.ring_tip_mano, :]
+
+        output[..., Joints.pinky_mcp, :] = kp3d_from[..., Joints.pinky_mcp_mano, :]
+        output[..., Joints.pinky_pip, :] = kp3d_from[..., Joints.pinky_pip_mano, :]
+        output[..., Joints.pinky_dip, :] = kp3d_from[..., Joints.pinky_dip_mano, :]
+        output[..., Joints.pinky_tip, :] = kp3d_from[..., Joints.pinky_tip_mano, :]
+
+        return output
 
 def set_seed(seed):
     np.random.seed(seed)

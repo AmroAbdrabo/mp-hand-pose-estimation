@@ -7,6 +7,7 @@ from tqdm import tqdm
 import subprocess
 import easydict
 import yaml
+from src.utils.utils import deconvert_order
 from src.utils.utils import pyt2np
 from torch.utils.tensorboard import SummaryWriter
 from src.models.bou_model import Bottleneck, DeconvBottleneck, BasicBlock
@@ -131,6 +132,9 @@ class Trainer:
             if (e % self.save_freq) == 0:
                 # NOTE You may want to store the best performing model based on the
                 # validation set in addition
+                torch.save({
+                    'optim_state_dict': self.opt.state_dict()
+                }, os.path.join(self.exp_dir, f"model_{e:04d}_optim.pt"))
                 torch.save(
                     self.model.state_dict(),
                     os.path.join(self.exp_dir, f"model_{e:04d}.pt"),
@@ -139,6 +143,9 @@ class Trainer:
         torch.save(
             self.model.state_dict(), os.path.join(self.exp_dir, f"model_last.pt")
         )
+        torch.save({
+                    'optim_state_dict': self.opt.state_dict()
+        }, os.path.join(self.exp_dir, f"model_{e:04d}_optim.pt"))
 
     def test_model(self):
         """
@@ -152,6 +159,7 @@ class Trainer:
                 self.data_loader_test, phase="test", preds_storage=[]
             )
 
+        
         preds = pyt2np(torch.cat(preds_storage, dim=0)).tolist()
 
         test_path = os.path.join(self.exp_dir, "test_preds.json")
