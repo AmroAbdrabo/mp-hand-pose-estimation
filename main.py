@@ -33,11 +33,7 @@ if __name__ == "__main__":
     ######## Set-up experimental directories
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
-    # Create experiment ID
-    unique_id = str(datetime.datetime.now().microsecond)
-    exp_dir = os.path.join(save_dir, f"exp_{unique_id}")
-    # If this fails, there was an ID clash. Hence its preferable to crash than overwrite
-    os.mkdir(exp_dir)
+
     ######## Parse arguments
     # NOTE You may want to add other settings here, such as the various cfg's below.
     parser = argparse.ArgumentParser()
@@ -63,6 +59,11 @@ if __name__ == "__main__":
         }
     )
     model = model_factory.get_model(model_cfg, dev)
+    # Create experiment ID
+    unique_id = str(datetime.datetime.now().microsecond)
+    exp_dir = os.path.join(save_dir, f"exp_{model_cfg.name}_{unique_id}")
+    # If this fails, there was an ID clash. Hence its preferable to crash than overwrite
+    os.mkdir(exp_dir)
     ######### Set-up loss function
     # NOTE Make sure you have a loss for each output slice as defined in model_cfg
     loss_cfg = edict(
@@ -131,8 +132,8 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = True
-    only_test = True
+    load_model = False
+    only_test = False
 
     path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_267917' + '\\'
     name = 'model_0000'
