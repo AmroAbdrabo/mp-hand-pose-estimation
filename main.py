@@ -43,7 +43,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--lr", help="learning rate of optimizer", type=float, default=1e-3)
     parser.add_argument(
-        "--n_epochs", help="Number of training epochs", type=int, default=50
+        "--n_epochs", help="Number of training epochs", type=int, default=150
     )
     parser.add_argument(
         "--batch_size", help="Batch size for one pass", type=int, default=64
