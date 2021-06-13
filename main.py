@@ -76,21 +76,33 @@ if __name__ == "__main__":
     ######### Set-up data transformation
     transformation_cfg = edict(
         {
+            "ChangeBackground": {},
+            "Resize": {"img_size": (320, 320)},
+            "ScaleNormalize": {},  # Scale normalization is allowed
+            "Rotate": {},
+            "Flip": {},
+            "AddClutter": {},
+        }
+    )
+    transformation_cfg_te = edict(
+        {
             "Resize": {"img_size": (320, 320)},
             "ScaleNormalize": {},  # Scale normalization is allowed
         }
     )
+
     transformations = transforms_factory.get_transforms(transformation_cfg)
+    transformations_te = transforms_factory.get_transforms(transformation_cfg_te)
     ######### Set-up data reader and data loader
     data_cfg = edict({"FreiHAND": {"dataset_path": data_dir}})
     data_reader_train = data_factory.get_data_reader(
         data_cfg, split="train", data_transforms=transformations
     )
     data_reader_val = data_factory.get_data_reader(
-        data_cfg, split="val", data_transforms=transformations
+        data_cfg, split="val", data_transforms=transformations_te
     )
     data_reader_test = data_factory.get_data_reader(
-        data_cfg, split="test", data_transforms=transformations
+        data_cfg, split="test", data_transforms=transformations_te
     )
     data_loader_train = DataLoader(
         data_reader_train,
@@ -132,11 +144,11 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = False
+    load_model = True
     only_test = False
 
-    path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_267917' + '\\'
-    name = 'model_0000'
+    path = os.environ["MP_EXPERIMENTS"] + '/exp_352809' + '/'
+    name = 'model_0018'
     if load_model:
         complete_path = path + name + '.pt'
         state = torch.load(complete_path)
