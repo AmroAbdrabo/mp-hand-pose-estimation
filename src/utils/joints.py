@@ -25,6 +25,29 @@ class JointInfo(object):
     ring_tip = 19
     pinky_tip = 20
 
+    root_mano = 0  
+    thumb_mcp_mano = 17
+    index_mcp_mano = 1  
+    middle_mcp_mano = 5 
+    ring_mcp_mano = 13
+    pinky_mcp_mano = 9 
+    thumb_pip_mano = 18
+    index_pip_mano = 2 
+    middle_pip_mano = 6 
+    ring_pip_mano = 14
+    pinky_pip_mano = 10 
+    thumb_dip_mano = 19
+    index_dip_mano = 3 
+    middle_dip_mano = 7 
+    ring_dip_mano = 15
+    pinky_dip_mano = 11  
+    thumb_tip_mano = 20
+    index_tip_mano = 4 
+    middle_tip_mano = 8 
+    ring_tip_mano = 16
+    pinky_tip_mano = 12
+
+    
     idx_to_name = {}
     idx_to_name[root] = "root"
     idx_to_name[thumb_mcp] = "thumb_mcp"
