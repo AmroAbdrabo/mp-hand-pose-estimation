@@ -46,7 +46,7 @@ if __name__ == "__main__":
         "--n_epochs", help="Number of training epochs", type=int, default=50
     )
     parser.add_argument(
-        "--batch_size", help="Batch size for one pass", type=int, default=10
+        "--batch_size", help="Batch size for one pass", type=int, default=64
     )
     args = parser.parse_args()
     ######### Set-up model
