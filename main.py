@@ -131,14 +131,16 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = False
-    only_test = False
+    load_model = True
+    only_test = True
 
-    path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_boukhayma' + '\\'
-    name = 'model_0003' # remoed .pt
+    path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_267917' + '\\'
+    name = 'model_0000'
     if load_model:
-        trainer.model.load_state_dict(torch.load(path + name + '.pt'))
-        checkpoint = torch.load(torch.load(path+name+"_optim.pt"))
+        complete_path = path + name + '.pt'
+        state = torch.load(complete_path)
+        trainer.model.load_state_dict(state)
+        checkpoint = torch.load(path+name+"_optim.pt")
         trainer.opt.load_state_dict(checkpoint['optim_state_dict'])
         if only_test:
             trainer.model.eval()

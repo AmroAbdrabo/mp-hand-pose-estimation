@@ -158,7 +158,7 @@ class Trainer:
         )
         torch.save({
                     'optim_state_dict': self.opt.state_dict()
-        }, os.path.join(self.exp_dir, f"model_{e:04d}_optim.pt"))
+        }, os.path.join(self.exp_dir, f"model_last_optim.pt"))
 
     def test_model(self):
         """
@@ -178,7 +178,7 @@ class Trainer:
         try:
             for el in preds:
                 deorder = deconvert_order(np.array(el))
-                preds_new.append(deorder)
+                preds_new.append(deorder.tolist())
         except:
             print("problem with changing the order")
 
