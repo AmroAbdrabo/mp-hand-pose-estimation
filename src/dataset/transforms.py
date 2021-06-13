@@ -54,5 +54,5 @@ class ScaleNormalize:
         )
         kp3d = kp3d / bone_length
         sample["kp3d"] = kp3d
-
+        sample["scale"] = np.array(bone_length)
         return sample

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     #gc.collect()
     #torch.cuda.empty_cache()
     set_seed(main_seed)  # Seed main thread
-    num_threads = 4
+    num_threads = 8
     dev = torch.device("cuda")
     data_dir = os.environ["MP_DATA"]
     #assert(os.path.isdir(data_dir))
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         "--n_epochs", help="Number of training epochs", type=int, default=50
     )
     parser.add_argument(
-        "--batch_size", help="Batch size for one pass", type=int, default=100
+        "--batch_size", help="Batch size for one pass", type=int, default=64
     )
     args = parser.parse_args()
     ######### Set-up model
@@ -131,11 +131,11 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = False
+    load_model = True
     only_test = False
 
-    path = 'S:\\Projects\\MachinePerception\\Experiments\\chernytska_model_V1' + '\\'
-    name = 'model_last.pt'
+    path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_boukhayma' + '\\'
+    name = 'model_0003.pt'
     if load_model:
         trainer.model.load_state_dict(torch.load(path + name))
         if only_test:

@@ -66,8 +66,13 @@ class PerfMetric(nn.Module):
         self.phases = phases
 
     def forward(self, pred, target):
-        _, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
-        err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
+        #_, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
+        #err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
+
+        kp3d_gt = target["kp3d"] * target["scale"].view(-1, 1, 1)
+        # Compute PA-MSE with unscaled ground-truth
+        _, _, _, pred_aligned = procrustes(kp3d_gt, pred["kp3d"])
+        err = ((pred_aligned - kp3d_gt) ** 2).sum(-1).sqrt().mean()
 
         # Do not backpropagate wrt to this error metric
         err = err.detach()

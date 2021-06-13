@@ -1,3 +1,5 @@
+import gzip
+
 import torch
 import os
 import json
@@ -6,6 +8,7 @@ import subprocess
 import easydict
 import yaml
 from src.utils.utils import pyt2np
+from torch.utils.tensorboard import SummaryWriter
 from src.models.bou_model import Bottleneck, DeconvBottleneck, BasicBlock
 
 def get_config(config):
@@ -25,6 +28,7 @@ class Trainer:
         dev,
     ):
 
+        self.writer = SummaryWriter(os.environ["MP_EXPERIMENTS"] + '/runs')
         self.data_loader_train = data_loader_train
         self.data_loader_val = data_loader_val
         self.data_loader_test = data_loader_test
@@ -41,7 +45,7 @@ class Trainer:
         self.dev = dev
         self.loss_fn = loss_fn
         self.print_freq = 100  # Update print frequency
-        self.save_freq = 10
+        self.save_freq = 1
         self.exp_dir = exp_dir
         #self.bottleneck = Bottleneck(1598, 10).to("cuda")  # should change with batch size
         #self.deconvbn = DeconvBottleneck(40, 21).to("cuda")
@@ -109,18 +113,20 @@ class Trainer:
         print(str_print)
 
     def train_model(self, n_epochs):
-
+        print('Experiment dir: ' + self.exp_dir)
         for e in range(n_epochs):
             print(f"\nEpoch: {e+1:04d}/{n_epochs:04d}")
             # Train one epoch
             self.model.train()
             print("##### TRAINING #####")
-            self.one_pass(self.data_loader_train, phase="train")
+            loss_train, _ = self.one_pass(self.data_loader_train, phase="train")
+            self.writer.add_scalar("train loss", loss_train, e)
             # Evaluate on validation set
             with torch.no_grad():
                 self.model.eval()
                 print("##### EVALUATION #####")
-                self.one_pass(self.data_loader_val, phase="eval")
+                loss_val, _ = self.one_pass(self.data_loader_val, phase="eval")
+                self.writer.add_scalar("val loss", loss_val, e)
 
             if (e % self.save_freq) == 0:
                 # NOTE You may want to store the best performing model based on the
@@ -152,6 +158,15 @@ class Trainer:
         print(f"Dumping test predictions in {test_path}")
         with open(test_path, "w") as f:
             json.dump(preds, f)
-        subprocess.call(['gzip', test_path])
+
+        # use alternative gzip function to work on windows
+        with open(test_path, "rb") as f:
+            data = f.read()
+            bindata = bytearray(data)
+            with gzip.open(test_path + '.gz', 'wb') as f_out:
+                f_out.write(bindata)
+        # subprocess.call(['gzip', test_path])
+
+
 
 
