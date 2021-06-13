@@ -131,7 +131,7 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = True
+    load_model = False
     only_test = False
 
     path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_boukhayma' + '\\'
