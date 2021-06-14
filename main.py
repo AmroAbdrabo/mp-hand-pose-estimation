@@ -118,6 +118,8 @@ if __name__ == "__main__":
     data_reader_test = data_factory.get_data_reader(
         data_cfg, split="test", data_transforms=transformations_te
     )
+    #subset_idx = list(range(0, 1000))
+    #data_reader_train = torch.utils.data.Subset(data_reader_train,subset_idx)
     data_loader_train = DataLoader(
         data_reader_train,
         batch_size=args.batch_size,
