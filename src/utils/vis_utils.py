@@ -40,7 +40,8 @@ def plot_fingers2D(kp2d, img_rgb=None, ax=None, c="gt"):
     for i in range(5):
         idx_to_plot = np.arange(i + 1, 21, 5)
         to_plot = np.concatenate((kp2d[0:1], kp2d[idx_to_plot]), axis=0)
-        ax.plot(to_plot[:, 0], to_plot[:, 1], "x-", color=c[i])
+        #ax.plot(to_plot[:, 0], to_plot[:, 1], "x-", color=c[i])
+        ax.plot(to_plot[:, 0], to_plot[:, 1], color=c[i])
 
     return ax
 

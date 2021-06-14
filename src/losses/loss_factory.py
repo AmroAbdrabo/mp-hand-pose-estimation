@@ -45,7 +45,7 @@ def get_loss(loss_cfg, dev):
     # wrong with that)
     # WARNING: This is a slow metric to compute due to procrustes. Therefore it is
     # advised to only keep this in the evaluation phase
-    all_losses["perf_metric"] = PerfMetric(weight=0.0, phases=["eval"])
+    all_losses["perf_metric"] = PerfMetric(weight=0.0, phases=["eval", "train"])
 
     total_loss = TotalLoss(all_losses, dev)
 

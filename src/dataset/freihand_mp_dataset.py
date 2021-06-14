@@ -1,4 +1,6 @@
 import os
+
+import cv2
 import cv2 as cv
 
 import numpy as np
@@ -7,6 +9,7 @@ from src.utils.utils import json_load
 from src.utils.joints import JointInfo as Joints
 from src.dataset.dataset_reader import DatasetReader
 
+from src.useHeatmaps import useHeatmaps
 
 class FreiHANDDataset(DatasetReader):
     def __init__(self, split, data_transforms, dataset_path):
@@ -27,6 +30,7 @@ class FreiHANDDataset(DatasetReader):
             kp3d = self.convert_order(np.array(json_load(xyz_path))) * 1000
             kp3d = np.tile(kp3d, (4, 1, 1))
 
+
         self.kp3d = kp3d
         self.K = K
         self.split = split
@@ -39,8 +43,26 @@ class FreiHANDDataset(DatasetReader):
         img = cv.imread(img_path)
         # Convert from BGR to RGB
         img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        img_size = img.shape[0]
+        if useHeatmaps():
+            from src.utils.utils import kp3d_to_kp2d
+            kp3d_transformed = kp3d
+            kp2d_pre = kp3d_to_kp2d(kp3d_transformed, K)
+            kp2d = kp2d_pre.astype(np.uint8)
+            heatmaps = np.zeros([img_size, img_size, 24]).astype(np.float)
+            for i in range(0,21):
+                posX = min(kp2d[i][0],223)
+                posY = min(kp2d[i][1],223)
+                heatmaps[posY, posX, i] += 1
+            heatmaps = cv2.GaussianBlur(heatmaps, (11,11), 0)
 
-        return {"image": img, "kp3d": kp3d, "K": K}
+            # append image:
+            heatmaps[:,:,21:] = img
+
+            return {"image": img, "kp3d": kp3d, "K": K, "heatmaps": heatmaps}
+
+        else:
+            return {"image": img, "kp3d": kp3d, "K": K}
 
     def __len__(self):
         return len(self.kp3d)
@@ -97,8 +119,8 @@ if __name__ == "__main__":
     from mpl_toolkits.mplot3d import Axes3D
     from src.utils.utils import kp3d_to_kp2d
 
-    dataset_path = "/home/adrian/datasets_tmp/freihand_dataset_MP/"
-    split = "test"
+    dataset_path = os.environ["MP_DATA"]
+    split = "train"
     data_transform = None
 
     freihand_dataset = FreiHANDDataset(split, data_transform, dataset_path)
@@ -119,3 +141,18 @@ if __name__ == "__main__":
     plot_fingers(kp3d, ax=ax_3d_1, view=(-90, -90))  # frontal view
     plot_fingers(kp3d, ax=ax_3d_2)  # top view
     plt.show()
+
+    if useHeatmaps():
+        fig = plt.figure(figsize=(12, 12))
+        plt.imshow(sample["heatmaps"][:,:,0])
+        plt.show()
+        plt.imshow(img)
+        heatmaps = sample["heatmaps"].sum(axis=2)
+        plt.imshow(heatmaps, alpha=0.4)
+        plt.show()
+        #np.sum(axis=3)
+        #plt.imshow(sample["heatmaps"][:,:,i], alpha=0.4)
+        for i in range(0,24):
+            plt.imshow(sample["heatmaps"][:, :, i])
+            #plt.savefig("/Users/lea/Documents/MasterFS21/MachinePerception/KIdivergent/augmented_images/train/" + str(i)+".jpg")
+            #cv2.imwrite( "/Users/lea/Documents/MasterFS21/MachinePerception/KIdivergent/augmented_images/train/" + str(i)+".jpg",sample["heatmaps"][:,:,i])

@@ -4,22 +4,55 @@ import cv2 as cv  # cv is faster than PIL
 
 import numpy as np
 from src.utils.joints import JointInfo
+from src.utils.vis_utils import plot_fingers
+from src.utils.utils import kp3d_to_kp2d, deconvert_order
 
 import os
 
+from src.useHeatmaps import useHeatmaps
 # NOTE Try adding data augmentation here
 
-def showPlot(original, augmented, title):
+def showPlot(sample_original, sample, title):
     # Making plots for report (use in debug mode):
-    fig = plt.figure(figsize=(20, 10))
-    fig.add_subplot(1, 2, 1);
-    plt.title("Before " + title, fontsize=20);
-    plt.imshow(original)
-    fig.add_subplot(1, 2, 2);
-    plt.title("After " + title, fontsize=20);
-    plt.imshow(augmented)
+    showJoints = True
+    if False:
+        fig = plt.figure(figsize=(20, 10))
+        fig.add_subplot(1, 2, 1);
+        plt.title("Before " + title, fontsize=20);
+        plt.imshow(sample_original["image"])
+        joints = fig.add_subplot(1, 2, 2);
+        plt.title("After " + title, fontsize=20);
+        #plt.imshow(sample["image"])
+        #kp3d = deconvert_order(sample["kp3d"])
+        kp3d = sample["kp3d"]
+        kp2d = kp3d_to_kp2d(kp3d, sample["K"])
+        plot_fingers(kp2d, img_rgb=sample["image"], ax=joints)
+
+    if showJoints:
+        kp3d = sample["kp3d"]
+        kp3d = deconvert_order(sample["kp3d"])
+        kp2d = kp3d_to_kp2d(kp3d, sample["K"])
+        fig = plt.figure(figsize=(10, 20))
+        fig.add_subplot(2,1,1)
+        plt.imshow(sample["image"])
+        ax_3d_1 = fig.add_subplot(2,1,2, projection="3d")
+        #ax_3d_2 = fig.add_subplot(1,3,3, projection="3d")
+        #plot_fingers(kp2d, img_rgb=sample["image"], ax=ax_rgb)
+
+        plot_fingers(kp3d, ax=ax_3d_1, view=(-90, -90))  # frontal view
+        #plot_fingers(kp3d, ax=ax_3d_2)  # top view
+
     plt.show()
 
+class Heatmaps:
+    def __init__(self):
+        pass
+
+    def __call__(self, sample):
+        image = sample["image"]
+        kp3d = sample["kp3d"]
+
+        return sample
 
 class NumpyToPytorch:
     def __call__(self, sample):
@@ -27,6 +60,9 @@ class NumpyToPytorch:
         img = sample["image"].transpose(2, 0, 1)
         # Convert to float and map to [0,1]
         sample["image"] = img.astype(np.float32) / 255
+
+        if useHeatmaps():
+            sample["heatmaps"] = sample["heatmaps"].transpose(2, 0, 1)
         # Transfrom from numpy array to pytorch tensor
         for k, v in sample.items():
             sample[k] = torch.from_numpy(v).float()
@@ -43,7 +79,11 @@ class Resize:
         self.img_size = tuple(img_size)
 
     def __call__(self, sample):
+        sample_original = sample
         sample["image"] = cv.resize(sample["image"], self.img_size)
+        if useHeatmaps():
+            sample["heatmaps"] = cv.resize(sample["heatmaps"], self.img_size)
+        #showPlot(sample_original, sample, "Resize")
 
         return sample
 
@@ -64,7 +104,8 @@ class ScaleNormalize:
     def __call__(self, sample):
         kp3d = sample["kp3d"]
         bone_length = np.linalg.norm(
-            kp3d[JointInfo.index_mcp] - kp3d[JointInfo.index_pip]
+            #kp3d[JointInfo.index_mcp] - kp3d[JointInfo.index_pip]
+            kp3d[JointInfo.index_mcp_mano] - kp3d[JointInfo.index_pip_mano]
         )
         kp3d = kp3d / bone_length
         sample["kp3d"] = kp3d
@@ -96,11 +137,16 @@ class Rotate:
                                [0, 0, 1]])
 
         # Making plot for report:
-        #showPlot(sample["image"],cv.warpAffine(sample["image"], rot_mat, (col, row)), "Rotation Augmentation")
 
-        sample["image"] = cv.warpAffine(sample["image"], rot_mat, (col, row))
+        sample_orig = sample
+        result = cv.warpAffine(sample["image"], rot_mat, (col, row))
+
+
+        sample["image"] = result
 
         sample["kp3d"] = np.matmul(kp3d, rot_mat_3D)
+
+        #showPlot(sample_orig, sample, "Rotation Augmentation")
 
 
         return sample
@@ -117,6 +163,7 @@ class Flip:
     def __call__(self, sample):
 
         flipBool = np.random.choice([True, False])
+        flipBool = True
         if(flipBool):
             image = sample["image"]
             kp3d = sample["kp3d"]
@@ -125,8 +172,12 @@ class Flip:
             kp3d_flipped = kp3d
             kp3d_flipped[:, 0] = -kp3d[:, 0]
 
+            # Making plot for report:
+            sample_orig = sample
             sample["image"] = image_flipped
             sample["kp3d"] = kp3d_flipped
+
+            #showPlot(sample_orig, sample, "Flipping Augmentation")
 
         return sample
 
@@ -173,8 +224,10 @@ class AddClutter:
 
         # Making plot for report:
         #showPlot(sample["image"], image_occl, "Occlusion Augmentation")
-
+        sample_original = sample
         sample["image"] = image_occl
+
+        #showPlot(sample_original, sample, "Occlusion Augmentation")
 
         return sample
 
@@ -194,6 +247,7 @@ class ChangeBackground:
         augment = np.random.choice([True,False])
 
         if augment:
+            #showPlot(sample, sample, "initial")
 
             image = sample["image"]
 
@@ -228,9 +282,12 @@ class ChangeBackground:
                 hand_bg = cv.bitwise_or(masked_hand, masked_bg)
                 #hand_bg_rgb = cv.cvtColor(hand_bg, cv.COLOR_BGR2RGB)
 
-                # Making plots for report (use in debug mode):
-                #showPlot(sample["image"], hand_bg, "Background Augmentation")
+                sample_original = sample
 
                 sample["image"] = hand_bg
+
+                # Making plots for report (use in debug mode):
+
+                #showPlot(sample_original, sample, "Background Augmentation")
 
         return sample

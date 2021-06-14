@@ -76,12 +76,12 @@ if __name__ == "__main__":
     ######### Set-up data transformation
     transformation_cfg = edict(
         {
-            "ChangeBackground": {},
+            #"ChangeBackground": {},
             "Resize": {"img_size": (320, 320)},
             "ScaleNormalize": {},  # Scale normalization is allowed
-            "Rotate": {},
-            "Flip": {},
-            "AddClutter": {},
+            #"Rotate": {},
+            #"Flip": {},
+            #"AddClutter": {},
         }
     )
     transformation_cfg_te = edict(
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = True
+    load_model = False
     only_test = False
 
     path = os.environ["MP_EXPERIMENTS"] + '/exp_352809' + '/'

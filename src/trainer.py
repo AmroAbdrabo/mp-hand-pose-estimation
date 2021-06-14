@@ -12,6 +12,7 @@ from src.utils.utils import pyt2np
 from torch.utils.tensorboard import SummaryWriter
 from src.models.bou_model import Bottleneck, DeconvBottleneck, BasicBlock
 
+from src.useHeatmaps import useHeatmaps
 
 def get_config(config):
     with open(config, 'r') as stream:
@@ -72,7 +73,11 @@ class Trainer:
             # Forward pass
 
             # x, x3d = model(batch)
-            x2d, x3d, param = self.model(batch['image'])
+            if useHeatmaps():
+                x2d, x3d, param = self.model(batch['heatmaps'])
+            else:
+                x2d, x3d, param = self.model(batch['image'])
+
             # joint_2d, mesh_2d = x2d[:, :42], x2d[:, 42:]
             joint_3d, mesh_3d = x3d[:, :21, :], x3d[:, 21:, :]
 
