@@ -9,6 +9,8 @@ def get_optimizer(opt_cfg, parameters):
 
     if opt_name == "sgd":
         opt = optim.SGD(parameters, lr=opt_cfg.lr)
+    if opt_name == "adam":
+        opt = optim.Adam(parameters, lr=opt_cfg.lr)
     else:
         # NOTE You may want to test other optimizers
         raise Exception(f"Unsupported model {opt_name}")

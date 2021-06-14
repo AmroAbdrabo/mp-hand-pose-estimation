@@ -63,8 +63,7 @@ class Trainer:
         loss_fn = self.loss_fn
 
         loss_tot = 0
-        loss_tot_eval_rkk = 0
-        loss_tot_eval_perf = 0
+        losses_all = {}
         for it, batch in enumerate(data_loader):
             # Zero the gradients of any prior passes
             opt.zero_grad()
@@ -96,12 +95,15 @@ class Trainer:
 
             # WARNING: This is only accurate if batch size is constant for all iterations
             # If drop_last=True, then this is not the case for the last batch.
-            loss_tot += losses["loss"].detach()
+            # loss_tot += losses["loss"].detach()
 
-            if phase in 'eval':
-                loss_tot_eval_rkk += losses["reg_kp2d_kp3d"].detach()
-                loss_tot_eval_perf += losses["perf_metric"].detach()
 
+            for loss_name, loss_value in losses.items():
+                if loss_name in losses_all:
+                    losses_all[loss_name] += loss_value
+                else:
+                    losses[loss_name].detach()
+                    losses_all[loss_name] = loss_value
 
             if (it % self.print_freq) == 0:
                 self.print_update(losses, it, len(data_loader))
@@ -111,12 +113,11 @@ class Trainer:
             if not preds_storage is None:
                 preds_storage.append(output["kp3d"])
 
-        if phase in 'eval':
-            loss_tot_eval_rkk /= len(data_loader)
-            loss_tot_eval_perf /= len(data_loader)
-        loss_tot /= len(data_loader)
+        for loss_name, loss_value in losses_all.items():
+            losses_all[loss_name] = loss_value / len(data_loader)
+        # loss_tot /= len(data_loader)
 
-        return (loss_tot, loss_tot_eval_rkk, loss_tot_eval_perf), preds_storage
+        return losses_all, preds_storage
 
     def send_to_device(self, batch):
         for k, v in batch.items():
@@ -138,14 +139,15 @@ class Trainer:
             self.model.train()
             print("##### TRAINING #####")
             losses, _ = self.one_pass(self.data_loader_train, phase="train")
-            self.writer.add_scalar("Train/reg_kp2d_kp3d", losses[0], e)
+            for loss_name, loss_value in losses.items():
+                self.writer.add_scalar("Train/" + loss_name, loss_value, e)
             # Evaluate on validation set
             with torch.no_grad():
                 self.model.eval()
                 print("##### EVALUATION #####")
                 losses, _ = self.one_pass(self.data_loader_val, phase="eval")
-                self.writer.add_scalar("Eval/reg_kp2d_kp3d", losses[1], e)
-                self.writer.add_scalar("Eval/perf_metric", losses[2], e)
+                for loss_name, loss_value in losses.items():
+                    self.writer.add_scalar("Eval/" + loss_name, loss_value, e)
 
             if (e % self.save_freq) == 0:
                 # NOTE You may want to store the best performing model based on the

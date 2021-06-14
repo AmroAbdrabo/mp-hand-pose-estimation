@@ -20,6 +20,16 @@ def kp3d_to_kp2d(kp3d, K):
 
     return kp2d[..., :2]
 
+def kp3d_to_kp2d_batch(kp3d, K):
+    """
+    Pinhole camera model projection
+    K: camera intrinsics (3 x 3)
+    kp3d: 3D coordinates wrt to camera (n_kp x 3)
+    """
+    kp2d = torch.matmul(kp3d, K.permute(0, 2, 1))
+    kp2d = torch.div(kp2d, kp3d[:, ..., 2:3])
+    return kp2d[:, ..., :2]
+
 def deconvert_order(kp3d_from):
         """
         De-Convert order from MANO to AIT. Accepts batch and sample input

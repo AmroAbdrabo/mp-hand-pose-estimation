@@ -104,7 +104,6 @@ class ScaleNormalize:
     def __call__(self, sample):
         kp3d = sample["kp3d"]
         bone_length = np.linalg.norm(
-            #kp3d[JointInfo.index_mcp] - kp3d[JointInfo.index_pip]
             kp3d[JointInfo.index_mcp_mano] - kp3d[JointInfo.index_pip_mano]
         )
         kp3d = kp3d / bone_length
@@ -163,7 +162,6 @@ class Flip:
     def __call__(self, sample):
 
         flipBool = np.random.choice([True, False])
-        flipBool = True
         if(flipBool):
             image = sample["image"]
             kp3d = sample["kp3d"]
@@ -247,7 +245,6 @@ class ChangeBackground:
         augment = np.random.choice([True,False])
 
         if augment:
-            #showPlot(sample, sample, "initial")
 
             image = sample["image"]
 
