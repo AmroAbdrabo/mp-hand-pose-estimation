@@ -13,3 +13,4 @@ images
 experiments
 data
 augmented_images.zip
+.DS_Store
