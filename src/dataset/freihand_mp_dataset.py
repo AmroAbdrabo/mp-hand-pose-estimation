@@ -97,7 +97,7 @@ if __name__ == "__main__":
     from mpl_toolkits.mplot3d import Axes3D
     from src.utils.utils import kp3d_to_kp2d
 
-    dataset_path = "/home/adrian/datasets_tmp/freihand_dataset_MP/"
+    dataset_path = os.environ["MP_DATA"]
     split = "test"
     data_transform = None
 

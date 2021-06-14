@@ -2,19 +2,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 
-from src.utils.utils import procrustes
+from src.utils.utils import procrustes, kp3d_to_kp2d_batch
 from src.utils.utils import kp3d_to_kp2d
 
 
 def compute_param_reg_loss(vec):
     assert vec.shape[1] == 22
-    beta_weight = 10**4
+    beta_weight = 10 ** 4
     beta = vec[:, -10:]
     theta = vec[:, -16:-10]
-    ret = torch.mean(theta**2) + beta_weight * torch.mean(beta**2)
-    return ret
-def get_loss(loss_cfg, dev):
+    ret = torch.mean(theta ** 2) + beta_weight * torch.mean(beta ** 2)
+    return ret / vec.shape[0]
 
+
+def get_loss(loss_cfg, dev):
     all_losses = {}
     for loss_name, loss_params in loss_cfg.items():
         loss_name = loss_name.lower()
@@ -30,8 +31,14 @@ def get_loss(loss_cfg, dev):
                 )
             else:
                 raise Exception(f"Unknown loss type {loss_params.type}")
-        elif loss_name == "reg_kp2d_kp3d":
-            loss = lambda pred, target: f.l1_loss(pred["kp3d"].to(dev), target["kp3d"].to(dev))+0.1*compute_param_reg_loss(pred['param'])
+        elif loss_name == "2d_joint_loss":
+            if loss_params.type == "l1":
+                loss = lambda pred, target: f.l1_loss(
+                    kp3d_to_kp2d_batch(pred["kp3d"], target["K"]).to(dev),
+                    kp3d_to_kp2d_batch(target["kp3d"], target["K"]).to(dev),
+                ) / 21
+        elif loss_name == "reg_loss":
+            loss = lambda pred, target: compute_param_reg_loss(pred['param'])
         else:
             raise Exception(f"Unknown loss {loss_name}")
 
@@ -66,8 +73,8 @@ class PerfMetric(nn.Module):
         self.phases = phases
 
     def forward(self, pred, target):
-        #_, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
-        #err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
+        # _, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
+        # err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
 
         kp3d_gt = target["kp3d"] * target["scale"].view(-1, 1, 1)
         # Compute PA-MSE with unscaled ground-truth

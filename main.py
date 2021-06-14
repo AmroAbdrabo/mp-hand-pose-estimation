@@ -67,11 +67,25 @@ if __name__ == "__main__":
     ######### Set-up loss function
     # NOTE Make sure you have a loss for each output slice as defined in model_cfg
     loss_cfg = edict(
-        {"reg_kp2d_kp3d": {"weight": 1, "type": "mse", "phases": ["train", "eval"]}}
+        {
+            "kp3d": {
+                "weight": 1,
+                "type": "l1",
+                "phases": ["train", "eval"]},
+            "reg_loss": {
+                "weight": 0.01,
+                "type": "mse",
+                "phases": ["train", "eval"]},
+            "2d_joint_loss": {
+                "weight": 0.1,
+                "type": "l1",
+                "phases": ["train", "eval"]},
+        }
     )
     loss_fn = loss_factory.get_loss(loss_cfg, dev)
     ######### Set-up optimizer
     opt_cfg = edict({"name": "sgd", "lr": args.lr})
+    opt_cfg = edict({"name": "adam", "lr": args.lr})
     opt = opt_factory.get_optimizer(opt_cfg, model.parameters())
     ######### Set-up data transformation
     transformation_cfg = edict(
@@ -144,11 +158,11 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = True
+    load_model = False
     only_test = False
 
-    path = os.environ["MP_EXPERIMENTS"] + '/exp_352809' + '/'
-    name = 'model_0018'
+    path = os.environ["MP_EXPERIMENTS"] + '/exp_bou_425572' + '/'
+    name = 'model_0000'
     if load_model:
         complete_path = path + name + '.pt'
         state = torch.load(complete_path)
