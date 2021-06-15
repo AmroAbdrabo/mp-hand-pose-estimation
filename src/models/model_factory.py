@@ -14,7 +14,7 @@ def get_model(cfg_model, dev=None):
 
     if model_name == "main_model":
         model = main_model.MainModel(cfg_model)
-    if model_name == "bou":
+    elif model_name == "bou":
         if useHeatmaps():
             model = bou_model.resnet34_Mano(ispretrain=False, input_option=1) # not sure if input_option means with or without hm
         else:

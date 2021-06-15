@@ -28,6 +28,7 @@ def kp3d_to_kp2d_batch(kp3d, K):
     """
     kp2d = torch.matmul(kp3d, K.permute(0, 2, 1))
     kp2d = torch.div(kp2d, kp3d[:, ..., 2:3])
+
     return kp2d[:, ..., :2]
 
 def deconvert_order(kp3d_from):

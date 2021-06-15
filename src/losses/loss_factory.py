@@ -1,9 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
+from matplotlib import pyplot as plt
 
 from src.utils.utils import procrustes, kp3d_to_kp2d_batch
 from src.utils.utils import kp3d_to_kp2d
+import numpy as np
+import cv2
 
 
 def compute_param_reg_loss(vec):
@@ -12,7 +15,30 @@ def compute_param_reg_loss(vec):
     beta = vec[:, -10:]
     theta = vec[:, -16:-10]
     ret = torch.mean(theta ** 2) + beta_weight * torch.mean(beta ** 2)
-    return ret / vec.shape[0]
+    return ret
+
+
+def fancy_unicorn(pred, target, dev):
+    kp2d = kp3d_to_kp2d_batch(pred["kp3d"], target["K"]).detach()
+    kp2d_gr = kp3d_to_kp2d_batch(target["kp3d"], target["K"]).detach()
+    img_size = target["image"].shape[2]
+    heatmaps = torch.zeros([img_size, img_size, 24])
+    for i in range(0, 21):
+        posX = int(max(0, min(kp2d[0,i,0], img_size-1)))
+        posY = int(max(0, min(kp2d[0,i,1], img_size-1)))
+        heatmaps[posY, posX, i] += 1
+    heatmaps_np = heatmaps.cpu().detach().numpy
+    heatmaps_np = cv2.GaussianBlur(heatmaps, (11, 11), 0)
+    heatmaps_np = heatmaps.sum(axis=2)
+
+    plt.imshow(heatmaps_np)
+    plt.show()
+    result = f.l1_loss(
+        kp2d.to(dev),
+        kp2d_gr.to(dev),
+    ) / 21
+
+    return result
 
 
 def get_loss(loss_cfg, dev):
@@ -33,9 +59,10 @@ def get_loss(loss_cfg, dev):
                 raise Exception(f"Unknown loss type {loss_params.type}")
         elif loss_name == "2d_joint_loss":
             if loss_params.type == "l1":
+                # loss = lambda pred, target: fancy_unicorn(pred, target, dev)
                 loss = lambda pred, target: f.l1_loss(
-                    kp3d_to_kp2d_batch(pred["kp3d"], target["K"]).to(dev),
-                    kp3d_to_kp2d_batch(target["kp3d"], target["K"]).to(dev),
+                    kp3d_to_kp2d_batch(pred["kp3d"], target["K"]),
+                    kp3d_to_kp2d_batch(target["kp3d"], target["K"])
                 ) / 21
         elif loss_name == "reg_loss":
             loss = lambda pred, target: compute_param_reg_loss(pred['param'])
@@ -52,7 +79,7 @@ def get_loss(loss_cfg, dev):
     # wrong with that)
     # WARNING: This is a slow metric to compute due to procrustes. Therefore it is
     # advised to only keep this in the evaluation phase
-    all_losses["perf_metric"] = PerfMetric(weight=0.0, phases=["eval", "train"])
+    all_losses["perf_metric"] = PerfMetric(weight=0.0, phases=["eval"])
 
     total_loss = TotalLoss(all_losses, dev)
 

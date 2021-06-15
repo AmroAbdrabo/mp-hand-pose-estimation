@@ -37,7 +37,7 @@ if __name__ == "__main__":
     ######## Parse arguments
     # NOTE You may want to add other settings here, such as the various cfg's below.
     parser = argparse.ArgumentParser()
-    parser.add_argument("--lr", help="learning rate of optimizer", type=float, default=1e-3)
+    parser.add_argument("--lr", help="learning rate of optimizer", type=float, default=1e-4)
     parser.add_argument(
         "--n_epochs", help="Number of training epochs", type=int, default=150
     )
@@ -69,13 +69,13 @@ if __name__ == "__main__":
     loss_cfg = edict(
         {
             "kp3d": {
-                "weight": 1,
-                "type": "l1",
-                "phases": ["train", "eval"]},
+               "weight": 1,
+               "type": "l1",
+               "phases": ["train", "eval"]},
             "reg_loss": {
-                "weight": 0.01,
+                "weight": 0.1,
                 "type": "mse",
-                "phases": ["train", "eval"]},
+                "phases": ["pre-train", "eval"]},
             "2d_joint_loss": {
                 "weight": 0.1,
                 "type": "l1",
@@ -90,12 +90,12 @@ if __name__ == "__main__":
     ######### Set-up data transformation
     transformation_cfg = edict(
         {
-            #"ChangeBackground": {},
+            "ChangeBackground": {},
             "Resize": {"img_size": (320, 320)},
             "ScaleNormalize": {},  # Scale normalization is allowed
-            #"Rotate": {},
-            #"Flip": {},
-            #"AddClutter": {},
+            "Rotate": {},
+            "Flip": {},
+            "AddClutter": {},
         }
     )
     transformation_cfg_te = edict(
@@ -118,17 +118,19 @@ if __name__ == "__main__":
     data_reader_test = data_factory.get_data_reader(
         data_cfg, split="test", data_transforms=transformations_te
     )
-    #subset_idx = list(range(0, 1000))
-    #data_reader_train = torch.utils.data.Subset(data_reader_train,subset_idx)
+    # subset_idx = list(range(0, 100))
+    # data_reader_train = torch.utils.data.Subset(data_reader_train,subset_idx)
     data_loader_train = DataLoader(
         data_reader_train,
         batch_size=args.batch_size,
-        shuffle=True,  # Re-shuffle data at every epoch
+        shuffle=False,  # Re-shuffle data at every epoch
         num_workers=num_threads,  # Number of worker threads batching data
         drop_last=True,  # If last batch not of size batch_size, drop
         pin_memory=False,  # Faster data transfer to GPU
         worker_init_fn=worker_init1,  # Seed all workers. Important for reproducibility
     )
+    # subset_idx = list(range(0, 100))
+    # data_reader_val = torch.utils.data.Subset(data_reader_val,subset_idx)
     data_loader_val = DataLoader(
         data_reader_val,
         batch_size=args.batch_size,

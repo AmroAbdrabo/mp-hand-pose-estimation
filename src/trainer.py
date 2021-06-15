@@ -137,17 +137,25 @@ class Trainer:
             print(f"\nEpoch: {e + 1:04d}/{n_epochs:04d}")
             # Train one epoch
             self.model.train()
-            print("##### TRAINING #####")
-            losses, _ = self.one_pass(self.data_loader_train, phase="train")
+
+            if True:
+                print("##### PRE-TRAINING #####")
+                phase = "pre-train"
+            else:
+                print("##### TRAINING #####")
+                phase = "train"
+            losses, _ = self.one_pass(self.data_loader_train, phase=phase)
             for loss_name, loss_value in losses.items():
-                self.writer.add_scalar("Train/" + loss_name, loss_value, e)
+                self.writer.add_scalar(phase + "/" + loss_name, loss_value, e)
             # Evaluate on validation set
-            with torch.no_grad():
-                self.model.eval()
-                print("##### EVALUATION #####")
-                losses, _ = self.one_pass(self.data_loader_val, phase="eval")
-                for loss_name, loss_value in losses.items():
-                    self.writer.add_scalar("Eval/" + loss_name, loss_value, e)
+            eval_model = True
+            if eval_model:
+                with torch.no_grad():
+                    self.model.eval()
+                    print("##### EVALUATION #####")
+                    losses, _ = self.one_pass(self.data_loader_val, phase="eval")
+                    for loss_name, loss_value in losses.items():
+                        self.writer.add_scalar("Eval/" + loss_name, loss_value, e)
 
             if (e % self.save_freq) == 0:
                 # NOTE You may want to store the best performing model based on the
