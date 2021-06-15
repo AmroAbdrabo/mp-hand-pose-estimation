@@ -4,7 +4,7 @@ import math
 from torch.autograd import Variable
 import pickle
 import numpy as np
-
+import os
 
 #-------------------
 # Mano in Pytorch
@@ -15,8 +15,11 @@ pose_num = 6
 mesh_num = 778
 keypoints_num = 16
  
+
+path_mano = os.environ["MANO"] + '/models' + '/' + 'MANO_RIGHT.pkl'
 #dd = pickle.load(open('manopth/mano/models/MANO_RIGHT.pkl', 'rb'), encoding = 'latin1')
-dd = pickle.load(open('C:\\Users\\amroa\\MP2021\\mano_v1_2\\models\\MANO_RIGHT.pkl', 'rb'), encoding = 'latin1')
+dd = pickle.load(open(path_mano, 'rb'), encoding = 'latin1')
+#dd = pickle.load(open('C:\\Users\\amroa\\MP2021\\mano_v1_2\\models\\MANO_RIGHT.pkl', 'rb'), encoding = 'latin1')
 kintree_table = dd['kintree_table']
 id_to_col = {kintree_table[1,i] : i for i in range(kintree_table.shape[1])} 
 parent = {i : id_to_col[kintree_table[0,i]] for i in range(1, kintree_table.shape[1])}  
