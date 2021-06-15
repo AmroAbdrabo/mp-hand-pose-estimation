@@ -90,7 +90,7 @@ if __name__ == "__main__":
     ######### Set-up data transformation
     transformation_cfg = edict(
         {
-            "ChangeBackground": {},
+            #"ChangeBackground": {},
             "Resize": {"img_size": (320, 320)},
             "ScaleNormalize": {},  # Scale normalization is allowed
             "Rotate": {},
