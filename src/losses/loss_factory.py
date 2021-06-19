@@ -18,29 +18,6 @@ def compute_param_reg_loss(vec):
     return ret
 
 
-def fancy_unicorn(pred, target, dev):
-    kp2d = kp3d_to_kp2d_batch(pred["kp3d"], target["K"]).detach()
-    kp2d_gr = kp3d_to_kp2d_batch(target["kp3d"], target["K"]).detach()
-    img_size = target["image"].shape[2]
-    heatmaps = torch.zeros([img_size, img_size, 24])
-    for i in range(0, 21):
-        posX = int(max(0, min(kp2d[0,i,0], img_size-1)))
-        posY = int(max(0, min(kp2d[0,i,1], img_size-1)))
-        heatmaps[posY, posX, i] += 1
-    heatmaps_np = heatmaps.cpu().detach().numpy
-    heatmaps_np = cv2.GaussianBlur(heatmaps, (11, 11), 0)
-    heatmaps_np = heatmaps.sum(axis=2)
-
-    plt.imshow(heatmaps_np)
-    plt.show()
-    result = f.l1_loss(
-        kp2d.to(dev),
-        kp2d_gr.to(dev),
-    ) / 21
-
-    return result
-
-
 def get_loss(loss_cfg, dev):
     all_losses = {}
     for loss_name, loss_params in loss_cfg.items():
@@ -59,7 +36,6 @@ def get_loss(loss_cfg, dev):
                 raise Exception(f"Unknown loss type {loss_params.type}")
         elif loss_name == "2d_joint_loss":
             if loss_params.type == "l1":
-                # loss = lambda pred, target: fancy_unicorn(pred, target, dev)
                 loss = lambda pred, target: f.l1_loss(
                     kp3d_to_kp2d_batch(pred["kp3d"], target["K"]),
                     kp3d_to_kp2d_batch(target["kp3d"], target["K"])
@@ -100,8 +76,6 @@ class PerfMetric(nn.Module):
         self.phases = phases
 
     def forward(self, pred, target):
-        # _, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
-        # err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
 
         kp3d_gt = target["kp3d"] * target["scale"].view(-1, 1, 1)
         # Compute PA-MSE with unscaled ground-truth

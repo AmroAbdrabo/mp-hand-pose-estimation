@@ -76,7 +76,6 @@ if __name__ == "__main__":
     )
     loss_fn = loss_factory.get_loss(loss_cfg, dev)
     ######### Set-up optimizer
-    opt_cfg = edict({"name": "sgd", "lr": args.lr})
     opt_cfg = edict({"name": "adam", "lr": args.lr})
     opt = opt_factory.get_optimizer(opt_cfg, model.parameters())
     ######### Set-up data transformation
