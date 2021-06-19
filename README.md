@@ -14,4 +14,5 @@ To get the backgrounds used for data augmentation, download this [dataset](http:
 
 Make sure you have these environments variables:
 
-`<addr>`
+`<MANO>` : this should point to a directory which contains [this] https://github.com/hassony2/manopth/tree/master/mano  as well as a folder, called models, which
+stores the file <MANO_RIGHT.pkl>, available in this [link](https://mano.is.tue.mpg.de/) 
