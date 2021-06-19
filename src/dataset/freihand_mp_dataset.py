@@ -150,9 +150,6 @@ if __name__ == "__main__":
         heatmaps = sample["heatmaps"].sum(axis=2)
         plt.imshow(heatmaps, alpha=0.4)
         plt.show()
-        #np.sum(axis=3)
-        #plt.imshow(sample["heatmaps"][:,:,i], alpha=0.4)
+       
         for i in range(0,24):
             plt.imshow(sample["heatmaps"][:, :, i])
-            #plt.savefig("/Users/lea/Documents/MasterFS21/MachinePerception/KIdivergent/augmented_images/train/" + str(i)+".jpg")
-            #cv2.imwrite( "/Users/lea/Documents/MasterFS21/MachinePerception/KIdivergent/augmented_images/train/" + str(i)+".jpg",sample["heatmaps"][:,:,i])

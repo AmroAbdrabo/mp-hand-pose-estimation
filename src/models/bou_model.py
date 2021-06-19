@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import os
 
+# Source https://github.com/boukhayma/3dhand
 #-------------------
 # Mano in Pytorch
 #-------------------
@@ -17,9 +18,7 @@ keypoints_num = 16
  
 
 path_mano = os.environ["MANO"] + '/models' + '/' + 'MANO_RIGHT.pkl'
-#dd = pickle.load(open('manopth/mano/models/MANO_RIGHT.pkl', 'rb'), encoding = 'latin1')
 dd = pickle.load(open(path_mano, 'rb'), encoding = 'latin1')
-#dd = pickle.load(open('C:\\Users\\amroa\\MP2021\\mano_v1_2\\models\\MANO_RIGHT.pkl', 'rb'), encoding = 'latin1')
 kintree_table = dd['kintree_table']
 id_to_col = {kintree_table[1,i] : i for i in range(kintree_table.shape[1])} 
 parent = {i : id_to_col[kintree_table[0,i]] for i in range(1, kintree_table.shape[1])}  
@@ -207,90 +206,6 @@ class BasicBlock(nn.Module):
 
         return out
 
-
-class Bottleneck(nn.Module):
-    expansion = 4
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
-        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                               padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(planes * 4)
-        self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        residual = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-
-        out = self.conv3(out)
-        out = self.bn3(out)
-
-        if self.downsample is not None:
-            residual = self.downsample(x)
-
-        out += residual
-        out = self.relu(out)
-
-        return out
-
-class DeconvBottleneck(nn.Module):
-    def __init__(self, in_channels, out_channels, expansion=2, stride=1, upsample=None):
-        super(DeconvBottleneck, self).__init__()
-        self.expansion = expansion
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        if stride == 1:
-            self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,
-                                   stride=stride, bias=False, padding=1)
-        else:
-            self.conv2 = nn.ConvTranspose2d(out_channels, out_channels,
-                                            kernel_size=3,
-                                            stride=stride, bias=False,
-                                            padding=1,
-                                            output_padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion,
-                               kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(out_channels * self.expansion)
-        self.relu = nn.ReLU()
-        self.upsample = upsample
-
-    def forward(self, x):
-        shortcut = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-
-        out = self.conv3(out)
-        out = self.bn3(out)
-        out = self.relu(out)
-
-        if self.upsample is not None:
-            shortcut = self.upsample(x)
-
-        out += shortcut
-        out = self.relu(out)
-
-        return out
-
 class _ResNet_Mano(nn.Module):
     def __init__(self, pretrain, block, layers, input_option, num_classes=1000):
         self.pretrain = pretrain
@@ -365,9 +280,7 @@ class _ResNet_Mano(nn.Module):
         xs = xs + self.mean
         # xs shape: batch_size * 22
 
-        # if pretrain the encoder, return param vector
-        # if self.pretrain:
-        #     return xs
+        # if pretrain the encoder, return param vector (xs)
 
         # hand and camera parameters
         scale = xs[:,0]
@@ -377,10 +290,6 @@ class _ResNet_Mano(nn.Module):
         beta = xs[:,12:]
 
         rot_np = rot.detach().cpu().numpy()
-        # scale_np = scale.detach().cpu().numpy()
-        # trans_np = trans.detach().cpu().numpy()
-        # theta_np = theta.detach().cpu().numpy()
-        # beta_np = beta.detach().cpu().numpy()
 
         # get 3d mesh through pretrained MANO
         # x3d shape: batch_size * (21 + 778) * 3
@@ -392,11 +301,6 @@ class _ResNet_Mano(nn.Module):
         x = trans.unsqueeze(1) + scale.unsqueeze(1).unsqueeze(2) * x3d[:,:,:2] 
         x = x.view(x.size(0),-1)
 
-
-        #x3d = scale.unsqueeze(1).unsqueeze(2) * x3d
-        #x3d[:,:,:2]  = trans.unsqueeze(1) + x3d[:,:,:2] 
-        
-        #return x, x3d
         return x, x3d, xs
 
 def resnet34_Mano(ispretrain=False,input_option=1, **kwargs):

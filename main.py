@@ -21,9 +21,6 @@ def worker_init1(x):
     worker_init(x, main_seed)
 
 if __name__ == "__main__":
-    #import gc
-    #gc.collect()
-    #torch.cuda.empty_cache()
     set_seed(main_seed)  # Seed main thread
     num_threads = 8 if torch.cuda.is_available() else 0
     dev = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -49,15 +46,10 @@ if __name__ == "__main__":
     n_kp = 21
     model_cfg = edict(
         {
-            "name": "bou",
-            "backend": {
-                "name": "resnet50",  # Defines the backend model type
-                "output_slices": {
-                    "kp3d": n_kp * 3
-                },  # Defines the outputs and their dimensionality
-            },
+            "name": "bou"
         }
     )
+    # note that the backend is already included in the class of bou_model hence why there is only a name field
     model = model_factory.get_model(model_cfg, dev)
     # Create experiment ID
     unique_id = str(datetime.datetime.now().microsecond)

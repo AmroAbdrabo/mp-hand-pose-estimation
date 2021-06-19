@@ -1,3 +1,4 @@
+# source: https://github.com/yueyang130/3D-Hand-Shape-and-Pose-from-Images-in-the-Wild/tree/47d1608b68f76f01c29d1f98a25de25e793a6e26
 # model type
 input_option: 0              # 1 use image and joint heat maps as input
                              # 0 use image only as input
