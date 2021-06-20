@@ -48,9 +48,7 @@ class Trainer:
         self.lr = self.params.lr
         self.beta1 = self.params.beta1
         self.beta2 = self.params.beta2
-        # p_view = self.model.state_dict()
-        self.opt = optimizer #torch.optim.Adam([p for p in self.model.parameters() if p.requires_grad],
-                                   # lr=self.lr, betas=(self.beta1, self.beta2), weight_decay=self.params.weight_decay)
+        self.opt = optimizer 
         self.dev = dev
         self.loss_fn = loss_fn
         self.print_freq = 100  # Update print frequency
@@ -59,8 +57,6 @@ class Trainer:
         self.encoder_scheduler = get_scheduler(self.opt, self.params)
         self.eval_loss = np.array([0]*4)
         self.train_loss = np.array([0]*12)
-        # self.bottleneck = Bottleneck(1598, 10).to("cuda")  # should change with batch size
-        # self.deconvbn = DeconvBottleneck(40, 21).to("cuda")
 
     def update_lr(self):
         self.encoder_scheduler.step()
@@ -207,15 +203,5 @@ class Trainer:
             with gzip.open(test_path + '.gz', 'wb') as f_out:
                 f_out.write(bindata)
 
-        test_path = os.path.join(self.exp_dir, "test_preds_correct_order.json")
-        print(f"Dumping test predictions in {test_path}")
-        with open(test_path, "w") as f:
-            json.dump(preds_new, f)
 
-        # use alternative gzip function to work on windows
-        with open(test_path, "rb") as f:
-            data = f.read()
-            bindata = bytearray(data)
-            with gzip.open(test_path + '.gz', 'wb') as f_out:
-                f_out.write(bindata)
         # subprocess.call(['gzip', test_path])

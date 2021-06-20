@@ -63,9 +63,7 @@ if __name__ == "__main__":
         }
     )
     
-    #model_ = model_factory.get_model(model_cfg, dev)
-    #from src.models import pipeline_model
-    #model = pipeline_model.Pipeline(model_, ['bot1', 'bot2', 'kp3d'])
+
     from src.models import main_model
     model = model_factory.get_model(model_cfg, dev)
     print("hello")
@@ -158,8 +156,7 @@ if __name__ == "__main__":
 
     path = os.environ["MP_EXPERIMENTS"] +'/exp_bou_947327' + '/'
     path = os.environ["MP_EXPERIMENTS"] +'\\resnet101' + '\\'  # this one did 7 epochs (0 to 6)
-    # inference with pca different this time
-    name = 'model_0010'
+    
     name = 'model_0023'
     if load_model:
         trainer.model.load_state_dict(torch.load(path + name + '.pt'))

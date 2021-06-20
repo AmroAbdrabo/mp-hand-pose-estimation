@@ -1,2 +1,0 @@
-def useHeatmaps():
-    return False
