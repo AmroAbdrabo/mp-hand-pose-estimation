@@ -22,9 +22,7 @@ def worker_init1(x):
     worker_init(x, main_seed)
 
 if __name__ == "__main__":
-    #import gc
-    #gc.collect()
-    #torch.cuda.empty_cache()
+
     set_seed(main_seed)  # Seed main thread
     num_threads = 4
     dev = torch.device("cuda")
@@ -52,27 +50,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ######### Set-up model
     n_kp = 21
-    bottleneck_handpose = 128*128/2
-    model_cfg = edict(
-        {
-            "name": "resnet34",
-            "backend": {
-                "name": "resnet50",  # Defines the backend model type
-                "output_slices": {
-                    "bot2": int(128*128/4)
-                },  # Defines the outputs and their dimensionality
-                "backend":{
-                    "name" : "resnet50",
-                    "output_slices" : {
-                        "bot1": int(128*128/2)
-                    }
-                }
-            },
-            "output_slices":  { 
-                    "kp3d":   int(21*3)
-            }
-        }
-    )
 
     model_cfg = edict(
         {
@@ -80,7 +57,7 @@ if __name__ == "__main__":
             "backend": {
                 "name": "resnet101",  # Defines the backend model type
                 "output_slices": {
-                    "kp3d": 21*3
+                    "kp3d": n_kp*3
                  },
             },
         }
