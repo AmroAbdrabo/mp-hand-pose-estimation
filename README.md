@@ -1,4 +1,3 @@
-
 # 3D Hand Pose Estimation (Project 1) - Group KIdivergent
 This repository presents an approach to automatically detect handpose and shape from RGB images with the help of a neural network. We enrich the provided freiHand dataset with online data augmentation and regress our model directly to the 21 3D joint positions.
   
@@ -18,7 +17,7 @@ pip install -r requirements.txt
 ### Downloading 128x128 background images
 
 To get the backgrounds used for data augmentation, download this [dataset](http://chaladze.com/l5/img/Linnaeus%205%20128X128.rar) of 128x128 images and put all the (1200) images from the folder `Linnaeus 5 128X128/train/other/` to a directory, i.e. called **backgrounds**.
-```python
+```
 └───backgrounds
 	1_128.jpg
 	2_128.jpg
