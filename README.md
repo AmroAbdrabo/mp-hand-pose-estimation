@@ -1,7 +1,7 @@
 # 3D Hand Pose Estimation (Project 1) - Group KIdivergent
 
 ## Branch abstract:
-- Provided skeleton
+- Provided skeleton (*final* submission branch is resnet101_V1)
 
 ### Installing mano
 To download Mano-pytorch and Mano follow the installtion procedure at https://github.com/hassony2/manopth
