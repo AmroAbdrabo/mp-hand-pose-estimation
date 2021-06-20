@@ -5,6 +5,7 @@
 - **Optimizer**: Adam with learning rate 1e-3
 - **Loss**: 3D joint loss
 - **Transforms**: Scale normalization, change background, add clutter, resizing to (128, 128) 
+- **Batch size**: Batch size 128, 210 epochs
 
 
 ### Installing mano
