@@ -41,8 +41,7 @@ MP_BACKGROUNDS="$HOME/project1/backgrounds"
 
 - `MP_DATA`: This should point to the directory `freihand_dataset_MP` folder (located in /cluster/project/infk/hilliges/lectures/mp21/project1/ on the cluster).
 
-### Installing mano (not necessary for branch resnet101_V1)
-*only necessary for branches containing the word bou *
+### Installing mano (for branches bou and bou_resnet50)
 To download Mano-pytorch and Mano follow the installation procedure at https://github.com/hassony2/manopth
 Furthermore, the environment variable `MANO` is needed: This should point to a directory which contains [this](https://github.com/hassony2/manopth/tree/master/mano) as well as a folder, called models, which
 
