@@ -1,6 +1,6 @@
 import torch
 import cv2 as cv  # cv is faster than PIL
-
+import os
 import numpy as np
 from src.utils.joints import JointInfo
 
@@ -56,7 +56,7 @@ class ScaleNormalize:
         sample["kp3d"] = kp3d
         sample["scale"] = np.array(bone_length)
         return sample
-import os
+
 class ChangeBackground:
     """
     Replaces the background
