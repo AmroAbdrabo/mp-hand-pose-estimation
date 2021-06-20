@@ -1,0 +1,9 @@
+torch
+torchvision
+matplotlib
+easydict
+opencv-python
+tqdm
+numpy
+chumpy
+yacs
