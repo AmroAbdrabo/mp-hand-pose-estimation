@@ -2,9 +2,11 @@
 This repository presents an approach to automatically detect handpose and shape from RGB images with the help of a neural network. We enrich the provided freiHand dataset with online data augmentation and regress our model directly to the 21 3D joint positions.
   
 
-## Branch abstract:
+## Branches:
 
 - final submission branch: **resnet101_V1**
+- each branch is accompanied with its own ReadMe to quickly outline what it's about
+
   
 ### Installing requirements
 
