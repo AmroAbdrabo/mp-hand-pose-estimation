@@ -4,7 +4,7 @@
 - **Model**: Single ResNet101 based approach
 - **Optimizer**: Adam with learning rate 1e-3
 - **Loss**: 3D joint loss
-- **Transforms**: Scale normalization, add clutter, resizing to (128, 128) 
+- **Transforms**: Scale normalization, change background, add clutter, resizing to (128, 128) 
 
 
 ### Installing mano
