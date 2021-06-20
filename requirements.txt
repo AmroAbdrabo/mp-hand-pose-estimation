@@ -5,3 +5,9 @@ easydict
 opencv-python
 tqdm
 numpy
+chumpy
+yacs
+scipy
+tensorboard
+transformers
+setuptools
