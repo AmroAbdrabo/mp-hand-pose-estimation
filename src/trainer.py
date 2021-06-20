@@ -8,10 +8,8 @@ from tqdm import tqdm
 import subprocess
 import easydict
 import yaml
-from src.utils.utils import deconvert_order
 from src.utils.utils import pyt2np
 from torch.utils.tensorboard import SummaryWriter
-from src.models.bou_model import BasicBlock
 from torch.optim import lr_scheduler
 
 
@@ -37,7 +35,7 @@ class Trainer:
             dev,
     ):
 
-        self.writer = SummaryWriter(os.environ["MP_EXPERIMENTS"] + '/final/runs')
+        self.writer = SummaryWriter(os.environ["MP_EXPERIMENTS"] + '/runs')
         self.data_loader_train = data_loader_train
         self.data_loader_val = data_loader_val
         self.data_loader_test = data_loader_test
@@ -55,8 +53,6 @@ class Trainer:
         self.save_freq = 1
         self.exp_dir = exp_dir
         self.encoder_scheduler = get_scheduler(self.opt, self.params)
-        self.eval_loss = np.array([0]*4)
-        self.train_loss = np.array([0]*12)
 
     def update_lr(self):
         self.encoder_scheduler.step()
@@ -95,16 +91,12 @@ class Trainer:
             loss_tot += losses["loss"].detach()
 
             if phase in 'eval':
-                loss_tot_eval_rkk += losses["reg_kp2d_kp3d"].detach()
+                loss_tot_eval_rkk += losses["l1_kp3d"].detach()
                 loss_tot_eval_perf += losses["perf_metric"].detach()
-                #self.eval_loss[cnt%4] = losses['perf_metric']
 
             #self.update_lr()
             if (it % self.print_freq) == 0:
                 self.print_update(losses, it, len(data_loader))
-                self.train_loss[cnt%12] = losses['loss']
-                
-                cnt = cnt+1
                 # NOTE You may want to add visualization and a logger like
                 # tensorboard, w&b or comet
 
@@ -115,7 +107,6 @@ class Trainer:
             loss_tot_eval_rkk /= len(data_loader)
             loss_tot_eval_perf /= len(data_loader)
         loss_tot /= len(data_loader)
-        print(str(np.mean(self.train_loss))+" average loss is "+ str(loss_tot_eval_perf))
 
         return (loss_tot, loss_tot_eval_rkk, loss_tot_eval_perf), preds_storage
 
@@ -141,6 +132,7 @@ class Trainer:
             losses, _ = self.one_pass(self.data_loader_train, phase="train")
             #self.writer.add_scalar("Train/reg_kp2d_kp3d", losses[0], e)
             # Evaluate on validation set
+            # Commented to speed up training, uncomment to see loss on tensorboard
             #with torch.no_grad():
             #    self.model.eval()
             #    print("##### EVALUATION #####")
@@ -178,18 +170,7 @@ class Trainer:
                 self.data_loader_test, phase="test", preds_storage=[]
             )
 
-        
-        preds_new = []
         preds = pyt2np(torch.cat(preds_storage, dim=0)).tolist()
-        try:
-            for el in preds:
-                deorder = deconvert_order(np.array(el, dtype = float)).tolist()
-                preds_new.append(deorder)
-        except:
-            print("problem with changing the order")
-
-        #print(preds[0])
-        #print(preds_new[0])
         
         test_path = os.path.join(self.exp_dir, "test_preds.json")
         print(f"Dumping test predictions in {test_path}")
@@ -204,4 +185,4 @@ class Trainer:
                 f_out.write(bindata)
 
 
-        # subprocess.call(['gzip', test_path])
+        # subprocess.call(['gzip', test_path])  on Linux, not Windows

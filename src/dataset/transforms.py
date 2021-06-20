@@ -75,11 +75,8 @@ class ChangeBackground:
         if augment:
 
             image = sample["image"]
-
             image_size = image.shape[0]
-
             hsv = cv.cvtColor(image, cv.COLOR_RGB2HSV)
-
             green = hsv[:, :, 1]
 
             hsv = cv.GaussianBlur(hsv, ksize=(5, 5), sigmaX=1)
@@ -87,10 +84,10 @@ class ChangeBackground:
 
             if (np.sum(np.array(green) >= 128) > 20000):
                 # Load random background image
-                bg_file = str(self.cnt%1200 + 1) + '_128.jpg'  #np.random.choice(os.listdir(self.background_folder))
+                bg_file = str(self.cnt%1200 + 1) + '_128.jpg' 
                 self.cnt = self.cnt + 1
                 bg = cv.imread(self.background_folder + "/" + bg_file)  # [0:image_size, 0:image_size]
-                #print("file is "+str(bg_file))
+                
                 bg = cv.resize(bg, (image_size, image_size))
                 bg = cv.cvtColor(bg, cv.COLOR_BGR2RGB)
 
@@ -100,8 +97,6 @@ class ChangeBackground:
                 masked_bg = cv.bitwise_and(bg, bg, mask=mask)
                 hand_bg = cv.bitwise_or(masked_hand, masked_bg)
                 #hand_bg_rgb = cv.cvtColor(hand_bg, cv.COLOR_BGR2RGB)
-
-                #sample_original = sample
 
                 sample["image"] = hand_bg
 

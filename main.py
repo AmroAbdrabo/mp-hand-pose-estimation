@@ -64,14 +64,13 @@ if __name__ == "__main__":
     )
     
 
-    from src.models import main_model
     model = model_factory.get_model(model_cfg, dev)
-    print("hello")
     print(model.parameters())
+
     ######### Set-up loss function
     # NOTE Make sure you have a loss for each output slice as defined in model_cfg
     loss_cfg = edict(
-        {"reg_kp2d_kp3d": {"weight": 1, "type": "mse", "phases": ["train", "eval"]}}
+        {"l1_kp3d": {"weight": 1, "type": "mse", "phases": ["train", "eval"]}}
     )
     loss_fn = loss_factory.get_loss(loss_cfg, dev)
     ######### Set-up optimizer
@@ -84,7 +83,6 @@ if __name__ == "__main__":
             "ChangeBackground": {},
             "Resize": {"img_size": (128, 128)},
             "ScaleNormalize": {},  # Scale normalization is allowed
-            # "Rotate": {},
             "AddClutter": {},
         }
     )
@@ -114,7 +112,7 @@ if __name__ == "__main__":
         shuffle=True,  # Re-shuffle data at every epoch
         num_workers=num_threads,  # Number of worker threads batching data
         drop_last=True,  # If last batch not of size batch_size, drop
-        pin_memory=False,  # Faster data transfer to GPU
+        pin_memory=True,  # Faster data transfer to GPU
         worker_init_fn=worker_init1,  # Seed all workers. Important for reproducibility
     )
     data_loader_val = DataLoader(
@@ -148,14 +146,10 @@ if __name__ == "__main__":
         exp_dir,
         dev,
     )
-    load_model = True
+    load_model = False
     only_test = False
 
-    path = 'S:\\Projects\\MachinePerception\\Experiments\\exp_boukhayma' + '\\'
-    name = 'model_0003'
-
-    path = os.environ["MP_EXPERIMENTS"] +'/exp_bou_947327' + '/'
-    path = os.environ["MP_EXPERIMENTS"] +'\\resnet101' + '\\'  # this one did 7 epochs (0 to 6)
+    path = os.environ["MP_EXPERIMENTS"] +'\\resnet101' + '\\' 
     
     name = 'model_0023'
     if load_model:

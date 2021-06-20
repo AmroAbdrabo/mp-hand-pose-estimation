@@ -1,3 +1,4 @@
+# source: https://github.com/yueyang130/3D-Hand-Shape-and-Pose-from-Images-in-the-Wild
 # model type
 input_option: 0              # 1 use image and joint heat maps as input
                              # 0 use image only as input
@@ -31,4 +32,4 @@ w_reg:  10                 # the weight of regulization loss
 
 # data options
 num_workers: 0                              # number of data loading threads
-new_size: 256                               # first resize the shortest image side to this size
+new_size: 256 

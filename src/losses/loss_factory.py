@@ -6,13 +6,7 @@ from src.utils.utils import procrustes
 from src.utils.utils import kp3d_to_kp2d
 
 
-def compute_param_reg_loss(vec):
-    assert vec.shape[1] == 22
-    beta_weight = 10**4
-    beta = vec[:, -10:]
-    theta = vec[:, -16:-10]
-    ret = torch.mean(theta**2) + beta_weight * torch.mean(beta**2)
-    return ret
+
 def get_loss(loss_cfg, dev):
 
     all_losses = {}
@@ -30,7 +24,7 @@ def get_loss(loss_cfg, dev):
                 )
             else:
                 raise Exception(f"Unknown loss type {loss_params.type}")
-        elif loss_name == "reg_kp2d_kp3d":
+        elif loss_name == "l1_kp3d":
             loss = lambda pred, target: f.l1_loss(pred["kp3d"].to(dev), target["kp3d"].to(dev))
         else:
             raise Exception(f"Unknown loss {loss_name}")
@@ -52,35 +46,6 @@ def get_loss(loss_cfg, dev):
     return total_loss
 
 
-""" class PerfMetric(nn.Module):
-    
-    This is the loss which is computed on the submission server
-    WARNING: This is a very costly metric to compute because of procrustes. It is only
-    provided so you know what the exact error metric used by the submission system is.
-    You are advised to only use sparingly
-    
-
-    def __init__(self, weight, phases):
-        super().__init__()
-        self.weight = weight
-        self.phases = phases
-
-    def forward(self, pred, target):
-        #pred['kp3d'] = torch.clone((pred['kp3d'])[0:10])
-        #target['kp3d'] = torch.clone((target['kp3d'])[0:10])
-        #target['scale'] = torch.clone((target['scale'])[0:10])
-        _, _, _, pred_aligned = procrustes(target["kp3d"], pred["kp3d"])
-        #err = ((pred_aligned - target["kp3d"]) ** 2).sum(-1).sqrt().mean()
-
-        #kp3d_gt = target["kp3d"] * target["scale"].view(-1, 1, 1)
-        # Compute PA-MSE with unscaled ground-truth
-        #_, _, _, pred_aligned = procrustes(kp3d_gt, pred["kp3d"])
-        err = ((pred_aligned - target['kp3d']) ** 2).sum(-1).sqrt().mean()
-
-        # Do not backpropagate wrt to this error metric
-        err = err.detach()
-
-        return err """
 class PerfMetric(nn.Module):
     """
     This is the loss which is computed on the submission server

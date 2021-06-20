@@ -47,7 +47,7 @@ class FreiHANDDataset(DatasetReader):
 
     def convert_order(self, kp3d_from):
         """
-        Convert order from FreiHAND to MANO (and then to AIT at the end). Accepts batch and sample input
+        Convert order from FreiHAND to AIT. Accepts batch and sample input
         """
         # order of Freiburg dataset
         # 0: wrist
